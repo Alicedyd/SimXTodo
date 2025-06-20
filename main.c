@@ -15,17 +15,24 @@
 int main(void) {
 
   /* init the programm */
-  init_window();
+  // init_window();
 
   /* load the todo list */
-  struct todo_item test = init_todo_item("test");
-  printf("contents: %s, status: %d, time: %s/n", test.contents, test.status,
-         format_time(test.create_t));
+
+  const char *file_name = "todo";
 
   struct todo_list *list = init_todo_list();
-  Result result = add_todo_item(list, test);
-  printf("limit: %d, count: %d, item.contents: %s/n", list->limit, list->count,
-         list->items[0].contents);
 
+  Result result = load_todo_list(list, file_name);
+  printf("Status: %d, MSG: %s", result.status, result.msg);
+
+  struct todo_item item = init_todo_item("test");
+  result = add_todo_item(list, item);
+
+  save_todo_list(list, file_name);
+
+  free_todo_list(list);
+
+  // endwin();
   return 0;
 }

@@ -59,7 +59,7 @@ Result load_todo_list(struct todo_list *list, const char *file_name) {
     if (feof(fp)) {
       /* empty file, meaning no todo item has been saved */
       result.status = RESULT_OK;
-      result.msg = "OK";
+      result.msg = "No items";
 
       return result;
     }
@@ -116,7 +116,8 @@ Result load_todo_list(struct todo_list *list, const char *file_name) {
     /* malloc the memory and read the contents */
     item.contents = (char *)malloc(sizeof(char) * MAX_TODO_CONTENTS_LEN);
 
-    if (fread(item.contents, sizeof(char), contents_len, fp) != 1) {
+    if (fread(item.contents, sizeof(char), contents_len, fp) !=
+        (unsigned long)contents_len) {
       free(item.contents);
 
       result.status = RESULT_ERROR;

@@ -1,3 +1,0 @@
-/Users/alicedyd/Repos/my_todo_list/build/CMakeFiles/my_todo_list.dir
-/Users/alicedyd/Repos/my_todo_list/build/CMakeFiles/edit_cache.dir
-/Users/alicedyd/Repos/my_todo_list/build/CMakeFiles/rebuild_cache.dir
