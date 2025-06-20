@@ -5,22 +5,20 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 /* some constants */
-#define MAX_TODO 100
+#define STATUS_TODO 0
+#define STATUS_DOING 1
+#define STATUS_DONE 2
 
-/* Status of single todo item */
-typedef enum {
-  TODO = 0,
-  DOING = 1,
-  DONE = 2,
-} todo_status;
+#define MAX_TODO_CONTENTS_LEN 500
 
 /* Single todo item */
 struct todo_item {
   char *contents;
-  todo_status status;
+  int status;
   time_t create_t;
 };
 
@@ -32,16 +30,17 @@ struct todo_list {
 };
 
 /* functions */
-struct todo_item init_todo_item(char *contents);
+struct todo_item init_todo_item(const char *contents);
 struct todo_list *init_todo_list(void);
+void free_todo_list(struct todo_list *list);
 
-Result load_todo_list(struct todo_list *list, FILE *fp);
-Result save_todo_list(struct todo_list *list, FILE *fp);
+Result load_todo_list(struct todo_list *list, const char *file_name);
+Result save_todo_list(struct todo_list *list, const char *file_name);
 
 Result add_todo_item(struct todo_list *list, struct todo_item item);
 Result delete_todo_item(struct todo_list *list, int item_index);
 
-Result change_item_status(struct todo_item *list, int item_index);
+Result change_item_status(struct todo_list *list, int item_index);
 Result change_item_contents(struct todo_list *list, int item_index,
                             char *new_contents);
 
