@@ -48,7 +48,7 @@ Result load_todo_list(struct todo_list *list, const char *file_name) {
   /* check the file pointer */
   if (!fp) {
     result.status = RESULT_ERROR;
-    result.msg = "Invalid file pointer";
+    result.msg = "Can't open the file";
 
     return result;
   }
@@ -58,11 +58,15 @@ Result load_todo_list(struct todo_list *list, const char *file_name) {
   if (fread(&saved_count, sizeof(int), 1, fp) != 1) {
     if (feof(fp)) {
       /* empty file, meaning no todo item has been saved */
+      fclose(fp);
+
       result.status = RESULT_OK;
       result.msg = "No items";
 
       return result;
     }
+    fclose(fp);
+
     result.status = RESULT_ERROR;
     result.msg = "failed to read item count";
 
@@ -70,6 +74,8 @@ Result load_todo_list(struct todo_list *list, const char *file_name) {
   }
 
   if (saved_count < 0) {
+    fclose(fp);
+
     result.status = RESULT_ERROR;
     result.msg = "Invalid item count in file";
 
@@ -83,6 +89,8 @@ Result load_todo_list(struct todo_list *list, const char *file_name) {
 
     /* read the status */
     if (fread(&item.status, sizeof(int), 1, fp) != 1) {
+      fclose(fp);
+
       result.status = RESULT_ERROR;
       result.msg = "failed to read item status";
 
@@ -91,6 +99,8 @@ Result load_todo_list(struct todo_list *list, const char *file_name) {
 
     /* read create_t */
     if (fread(&item.create_t, sizeof(time_t), 1, fp) != 1) {
+      fclose(fp);
+
       result.status = RESULT_ERROR;
       result.msg = "failed to read item create time";
 
@@ -98,8 +108,10 @@ Result load_todo_list(struct todo_list *list, const char *file_name) {
     }
 
     /* read the length of contents */
-    int contents_len;
-    if (fread(&contents_len, sizeof(int), 1, fp) != 1) {
+    size_t contents_len;
+    if (fread(&contents_len, sizeof(size_t), 1, fp) != 1) {
+      fclose(fp);
+
       result.status = RESULT_ERROR;
       result.msg = "failed to read item contents length";
 
@@ -107,6 +119,8 @@ Result load_todo_list(struct todo_list *list, const char *file_name) {
     }
 
     if (contents_len < 0 || contents_len >= MAX_TODO_CONTENTS_LEN) {
+      fclose(fp);
+
       result.status = RESULT_ERROR;
       result.msg = "Invalid item contents length";
 
@@ -116,9 +130,10 @@ Result load_todo_list(struct todo_list *list, const char *file_name) {
     /* malloc the memory and read the contents */
     item.contents = (char *)malloc(sizeof(char) * MAX_TODO_CONTENTS_LEN);
 
-    if (fread(item.contents, sizeof(char), contents_len, fp) !=
-        (unsigned long)contents_len) {
+    if (fread(item.contents, sizeof(char), contents_len, fp) != contents_len) {
       free(item.contents);
+
+      fclose(fp);
 
       result.status = RESULT_ERROR;
       result.msg = "failed to read item contents";
@@ -136,6 +151,8 @@ Result load_todo_list(struct todo_list *list, const char *file_name) {
   }
 
   /* all done */
+  fclose(fp);
+
   result.status = RESULT_OK;
   result.msg = "Ok";
 
@@ -156,6 +173,8 @@ Result save_todo_list(struct todo_list *list, const char *file_name) {
 
   /* write the count of items */
   if (fwrite(&list->count, sizeof(int), 1, fp) != 1) {
+    fclose(fp);
+
     result.status = RESULT_ERROR;
     result.msg = "Failed to write item count";
 
@@ -169,6 +188,8 @@ Result save_todo_list(struct todo_list *list, const char *file_name) {
 
     /* write the status */
     if (fwrite(&item->status, sizeof(int), 1, fp) != 1) {
+      fclose(fp);
+
       result.status = RESULT_ERROR;
       result.msg = "Failed to write item status";
 
@@ -177,6 +198,8 @@ Result save_todo_list(struct todo_list *list, const char *file_name) {
 
     /* write create_t */
     if (fwrite(&item->create_t, sizeof(time_t), 1, fp) != 1) {
+      fclose(fp);
+
       result.status = RESULT_ERROR;
       result.msg = "Failed to write crearte time";
 
@@ -184,8 +207,10 @@ Result save_todo_list(struct todo_list *list, const char *file_name) {
     }
 
     /* write contents length */
-    int contents_len = strlen(item->contents);
-    if (fwrite(&contents_len, sizeof(int), 1, fp) != 1) {
+    size_t contents_len = strlen(item->contents);
+    if (fwrite(&contents_len, sizeof(size_t), 1, fp) != 1) {
+      fclose(fp);
+
       result.status = RESULT_ERROR;
       result.msg = "Failed to write contents length";
 
@@ -193,7 +218,10 @@ Result save_todo_list(struct todo_list *list, const char *file_name) {
     }
 
     /* write contents */
-    if (fwrite(item->contents, sizeof(char), contents_len, fp) != 1) {
+    if (fwrite(item->contents, sizeof(char), contents_len, fp) !=
+        contents_len) {
+      fclose(fp);
+
       result.status = RESULT_ERROR;
       result.msg = "Failed to write contents";
 
@@ -203,11 +231,15 @@ Result save_todo_list(struct todo_list *list, const char *file_name) {
 
   /* flush */
   if (fflush(fp) != 0) {
+    fclose(fp);
+
     result.status = RESULT_ERROR;
     result.msg = "Failed to flush file buffer";
 
     return result;
   }
+
+  fclose(fp);
 
   result.status = RESULT_OK;
   result.msg = "Ok";
