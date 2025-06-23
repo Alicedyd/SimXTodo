@@ -22,6 +22,8 @@ struct todo_list *init_todo_list(void) {
   list->items =
       (struct todo_item *)malloc(sizeof(struct todo_item) * list->limit);
 
+  list->current_selected = NOT_SELECTED;
+
   return list;
 }
 
@@ -152,6 +154,8 @@ Result load_todo_list(struct todo_list *list, const char *file_name) {
 
   /* all done */
   fclose(fp);
+
+  list->current_selected = 0;
 
   result.status = RESULT_OK;
   result.msg = "Ok";

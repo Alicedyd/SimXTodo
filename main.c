@@ -15,24 +15,51 @@
 int main(void) {
 
   /* init the programm */
-  // init_window();
+  init_window();
 
   /* load the todo list */
-
   const char *file_name = "todo";
-
   struct todo_list *list = init_todo_list();
-
   Result result = load_todo_list(list, file_name);
-  printf("Status: %d, MSG: %s", result.status, result.msg);
 
-  struct todo_item item = init_todo_item("test");
-  result = add_todo_item(list, item);
+  const char *prompt = "This is a very long prompt for confirm popup to test "
+                       "the auto length of the popup";
+  int res = confirm_popup(strlen(prompt) + 10, prompt);
+
+  clear();
+
+  if (res == 1) {
+    msg_popup(30, "Notice", "yes");
+  } else {
+    msg_popup(30, "Notice", "no");
+  }
+
+  if (result.status == RESULT_ERROR) {
+    /* print the error msg and clean the todo file (delte and touch) */
+    msg_popup(strlen(result.msg) + 10, "Notice", result.msg);
+
+    /* TODO: add the function to delete and create todo file */
+  }
+
+  /* clean the main window */
+  clear();
+
+  /* display the hint bar */
+  list_help();
+
+  /* display the todo items */
+  list_todo_list(list);
+
+  /* the main loop */
+  int ch;
+  while ((ch = getch()) != 'q') {
+    /* TODO write the main loop */
+  }
 
   save_todo_list(list, file_name);
 
   free_todo_list(list);
 
-  // endwin();
+  endwin();
   return 0;
 }

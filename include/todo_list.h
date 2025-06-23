@@ -15,6 +15,8 @@
 
 #define MAX_TODO_CONTENTS_LEN 500
 
+#define NOT_SELECTED -1
+
 /* Single todo item */
 struct todo_item {
   char *contents;
@@ -27,6 +29,9 @@ struct todo_list {
   int count; /* current count of items */
   int limit; /* max limits of items */
   struct todo_item *items;
+
+  /* index of current selected item, don't save to the file */
+  int current_selected;
 };
 
 /* functions */
