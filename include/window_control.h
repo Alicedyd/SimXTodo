@@ -18,6 +18,8 @@ void msg_popup(int width, const char *title, const char *msg);
 bool confirm_popup(int width, const char *msg);
 void input_popup(int width, const char *prompt, char *buffer, int buffer_size);
 
-void display_screen(struct todo_list *list);
+void help_popup(void);
+
+void display_screen(struct todo_list *list, int screen_offset);
 
 #endif
