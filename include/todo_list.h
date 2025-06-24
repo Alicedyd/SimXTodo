@@ -13,7 +13,7 @@
 #define STATUS_DOING 1
 #define STATUS_DONE 2
 
-#define MAX_TODO_CONTENTS_LEN 500
+#define MAX_TODO_CONTENTS_LEN 100
 
 #define NOT_SELECTED -1
 

@@ -8,10 +8,10 @@ void init_window(void) {
 
   /* initialize the color */
   start_color();
-  init_pair(0, COLOR_RED, COLOR_BLACK);
-  init_pair(1, COLOR_YELLOW, COLOR_BLACK);
-  init_pair(2, COLOR_GREEN, COLOR_BLACK);
-  init_pair(3, COLOR_WHITE, COLOR_BLUE);
+  init_pair(1, COLOR_RED, COLOR_BLACK);
+  init_pair(2, COLOR_YELLOW, COLOR_BLACK);
+  init_pair(3, COLOR_GREEN, COLOR_BLACK);
+  init_pair(4, COLOR_WHITE, COLOR_BLUE);
 
   noecho();
   curs_set(0);
@@ -59,7 +59,7 @@ void msg_popup(int width, const char *title, const char *msg) {
   refresh();
 }
 
-int confirm_popup(int width, const char *msg) {
+bool confirm_popup(int width, const char *msg) {
   WINDOW *popup = create_popup(POPUP_HEIGHT, width, "Confirm", NULL);
 
   /* add the message */
@@ -84,14 +84,69 @@ int confirm_popup(int width, const char *msg) {
   clear();
   refresh();
 
-  return (ch == 'y' || ch == 'Y') ? 1 : 0;
+  return (ch == 'y' || ch == 'Y');
 }
 
-void input_popup(int height, int width, const char *prompt, char *buffer,
-                 int buffer_size) {}
+void input_popup(int width, const char *prompt, char *buffer, int buffer_size) {
+  WINDOW *popup = create_popup(POPUP_HEIGHT, width, "Input", NULL);
 
-/* display the hint bar at the top of main window */
-void list_help(void) {}
+  /* add the prompt */
+  mvwprintw(popup, 2, 2, "%s", prompt);
 
-/* display the todo items according to status and current_selected */
-void list_todo_list(struct todo_list *list) {}
+  /* add the input bar */
+  mvwprintw(popup, 4, 2, "> ");
+
+  wrefresh(popup);
+
+  /* get the input */
+  echo();
+  mvwgetnstr(popup, 4, 4, buffer, buffer_size - 1);
+  noecho();
+
+  delwin(popup);
+  clear();
+  refresh();
+}
+
+/* display the help bar and the todo items according to status and
+ * current_selected */
+void display_screen(struct todo_list *list) {
+  /* display the help bar */
+  mvwprintw(stdscr, 0, 1,
+            "j: move up; k: move down; a: add item; d: delete item; c: change "
+            "the status");
+
+  /* display the title */
+  mvwprintw(stdscr, 1, (MAX_TODO_CONTENTS_LEN - 4) / 2, "TODO");
+  mvwprintw(stdscr, 1, MAX_TODO_CONTENTS_LEN + 1, "STATUS");
+  mvwprintw(stdscr, 1, MAX_TODO_CONTENTS_LEN + 16, "START DATE");
+
+  for (int i = 0; i < list->count; i++) {
+    if (i == list->current_selected) {
+      attron(COLOR_PAIR(4) | A_REVERSE);
+    }
+
+    attron(COLOR_PAIR(list->items[i].status + 1));
+
+    mvwprintw(stdscr, i + 2, 0, list->items[i].contents);
+
+    if (list->items[i].status == STATUS_TODO) {
+      mvwprintw(stdscr, i + 2, MAX_TODO_CONTENTS_LEN + 1, "[TODO]");
+    } else if (list->items[i].status == STATUS_DOING) {
+      mvwprintw(stdscr, i + 2, MAX_TODO_CONTENTS_LEN + 1, "[DOING]");
+    } else if (list->items[i].status == STATUS_DONE) {
+      mvwprintw(stdscr, i + 2, MAX_TODO_CONTENTS_LEN + 1, "[DONE]");
+    }
+
+    mvwprintw(stdscr, i + 2, MAX_TODO_CONTENTS_LEN + 16,
+              format_time(list->items[i].create_t));
+
+    attroff(COLOR_PAIR(list->items[i].status + 1));
+
+    if (i == list->current_selected) {
+      attroff(COLOR_PAIR(4) | A_REVERSE);
+    }
+  }
+
+  refresh();
+}

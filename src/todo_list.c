@@ -8,7 +8,8 @@ struct todo_item init_todo_item(const char *contents) {
   item.create_t = time(NULL);
   item.contents = (char *)malloc(sizeof(char) * MAX_TODO_CONTENTS_LEN);
 
-  strcpy(item.contents, contents);
+  if (contents)
+    strcpy(item.contents, contents);
 
   return item;
 }
