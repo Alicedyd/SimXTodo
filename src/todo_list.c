@@ -1,4 +1,5 @@
 #include "../include/todo_list.h"
+#include <ncurses.h>
 
 /* initilize an empty todo item */
 struct todo_item init_todo_item(const char *contents) {
@@ -287,32 +288,57 @@ Result add_todo_item(struct todo_list *list, struct todo_item item) {
 /* delete one todo item from the todo list according to an index */
 Result delete_todo_item(struct todo_list *list, int item_index) {
   Result result;
-  int index;
 
-  for (index = 0; index < list->count; index++) {
-    if (index == item_index) {
+  if (item_index >= list->count) {
+    result.status = RESULT_ERROR;
+    result.msg = "Can't find the item";
 
-      /* free the contents */
-      free(list->items[index].contents);
+    return result;
+  } else {
+    /* free the contents */
+    free(list->items[item_index].contents);
 
-      /* move the items after the deleted item forward */
-      int j;
-      for (j = index; j < list->count - 1; j++) {
-        list->items[j] = list->items[j + 1];
-      }
-
-      list->count -= 1;
-
-      result.status = RESULT_OK;
-      result.msg = "OK";
-
-      return result;
+    /* move the items after the deleted item forward */
+    int j;
+    for (j = item_index; j < list->count - 1; j++) {
+      list->items[j] = list->items[j + 1];
     }
-  }
 
-  /* can't find the item wanted to delete */
-  result.status = RESULT_ERROR;
-  result.msg = "Can't find the item";
+    list->count -= 1;
+
+    result.status = RESULT_OK;
+    result.msg = "OK";
+
+    return result;
+  }
+}
+
+Result change_todo_item(struct todo_list *list, int source_index,
+                        int target_index) {
+  struct todo_item temp = init_todo_item(NULL);
+
+  /* copy the todo item with target index */
+  temp.status = list->items[target_index].status;
+  temp.create_t = list->items[target_index].create_t;
+  strcpy(temp.contents, list->items[target_index].contents);
+
+  /* copy the source todo item to target todo item */
+  list->items[target_index].status = list->items[source_index].status;
+  list->items[target_index].create_t = list->items[source_index].create_t;
+  strcpy(list->items[target_index].contents,
+         list->items[source_index].contents);
+
+  /* copy temp to source todo item */
+  list->items[source_index].status = temp.status;
+  list->items[source_index].create_t = temp.create_t;
+  strcpy(list->items[source_index].contents, temp.contents);
+
+  /* free temp */
+  free(temp.contents);
+
+  Result result;
+  result.status = RESULT_OK;
+  result.msg = "OK";
 
   return result;
 }
@@ -320,45 +346,36 @@ Result delete_todo_item(struct todo_list *list, int item_index) {
 /* Change the status of a todo item */
 Result change_item_status(struct todo_list *list, int item_index) {
   Result result;
-  int index;
 
-  for (index = 0; index < list->count; index++) {
-    if (index == item_index) {
-      list->items[index].status = (list->items[index].status + 1) % 3;
+  if (item_index >= list->count) {
+    result.status = RESULT_ERROR;
+    result.msg = "Illegal item";
 
-      result.status = RESULT_OK;
-      result.msg = "OK";
+    return result;
+  } else {
+    list->items[item_index].status = (list->items[item_index].status + 1) % 3;
 
-      return result;
-    }
+    result.status = RESULT_OK;
+    result.msg = "OK";
+
+    return result;
   }
-
-  /* can't find the item */
-  result.status = RESULT_ERROR;
-  result.msg = "Can't find the item";
-
-  return result;
 }
 
 Result change_item_contents(struct todo_list *list, int item_index,
                             char *new_contents) {
   Result result;
-  int index;
 
-  for (index = 0; index < list->count; index++) {
-    if (index == item_index) {
-      strcpy(list->items[index].contents, new_contents);
+  if (item_index >= list->count) {
+    result.status = RESULT_ERROR;
+    result.msg = "Illegal item";
+    return result;
+  } else {
+    strcpy(list->items[item_index].contents, new_contents);
 
-      result.status = RESULT_OK;
-      result.msg = "OK";
+    result.status = RESULT_OK;
+    result.msg = "OK";
 
-      return result;
-    }
+    return result;
   }
-
-  /* can't find the item */
-  result.status = RESULT_ERROR;
-  result.msg = "Can't find the item";
-
-  return result;
 }

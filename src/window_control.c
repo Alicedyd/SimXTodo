@@ -109,7 +109,7 @@ void input_popup(int width, const char *prompt, char *buffer, int buffer_size) {
 }
 
 void help_popup(void) {
-  int width = 25, height = 12;
+  int width = 30, height = 12;
 
   int max_y, max_x;
   getmaxyx(stdscr, max_y, max_x);
@@ -128,10 +128,14 @@ void help_popup(void) {
   /* add the help items */
   const int help_count = 8;
   const char *helps[] = {
-      "j: move down",          "k: move up",
-      "a: add todo item",      "d: delete the item",
-      "c: change item status", "m: modify the item",
-      "h: show help",          "q: quit the programm",
+      "j/k: cursor move down/up",
+      "J/K: item move down/up",
+      "a: add todo item",
+      "d: delete the item",
+      "c: change item status",
+      "m: modify the item",
+      "h: show help",
+      "q: quit the programm",
   };
   for (int i = 0; i < help_count; i++) {
     mvwprintw(help, i + 2, 2, helps[i]);
@@ -156,13 +160,19 @@ void display_screen(struct todo_list *list, int screen_offset) {
   int contents_len, status_len, date_len;
 
   /* calculate the length of different part */
-  date_len = 12;
-  status_len = 12;
+  date_len = 15;
+  status_len = 8;
   contents_len = max_x - date_len - status_len;
 
+  /**
   mvwprintw(stdscr, 0, contents_len / 2, "TODO");
   mvwprintw(stdscr, 0, contents_len, "STATUS");
   mvwprintw(stdscr, 0, contents_len + status_len, "START DATE");
+  **/
+
+  mvwprintw(stdscr, 0, 2, "START DATE");
+  mvwprintw(stdscr, 0, date_len, "STATUS");
+  mvwprintw(stdscr, 0, date_len + status_len + contents_len / 2, "TODO");
 
   int end_index = screen_offset + max_y - 2;
   if (end_index > list->count) {
@@ -171,11 +181,12 @@ void display_screen(struct todo_list *list, int screen_offset) {
 
   for (int i = screen_offset; i < end_index; i++) {
     if (i == list->current_selected) {
-      attron(COLOR_PAIR(4) | A_REVERSE);
+      attron(A_REVERSE);
     }
 
     attron(COLOR_PAIR(list->items[i].status + 1));
 
+    /**
     mvwprintw(stdscr, i + 1 - screen_offset, 1, list->items[i].contents);
 
     if (list->items[i].status == STATUS_TODO) {
@@ -188,16 +199,31 @@ void display_screen(struct todo_list *list, int screen_offset) {
 
     mvwprintw(stdscr, i + 1 - screen_offset, contents_len + status_len,
               format_time(list->items[i].create_t));
+    **/
+
+    mvwprintw(stdscr, i + 1 - screen_offset, 2,
+              format_time(list->items[i].create_t));
+
+    if (list->items[i].status == STATUS_TODO) {
+      mvwprintw(stdscr, i + 1 - screen_offset, date_len, "[TODO]");
+    } else if (list->items[i].status == STATUS_DOING) {
+      mvwprintw(stdscr, i + 1 - screen_offset, date_len, "[DOING]");
+    } else if (list->items[i].status == STATUS_DONE) {
+      mvwprintw(stdscr, i + 1 - screen_offset, date_len, "[DONE]");
+    }
+
+    mvwprintw(stdscr, i + 1 - screen_offset, date_len + status_len + 1,
+              list->items[i].contents);
 
     attroff(COLOR_PAIR(list->items[i].status + 1));
 
     if (i == list->current_selected) {
-      attroff(COLOR_PAIR(4) | A_REVERSE);
+      attroff(A_REVERSE);
     }
   }
 
   attron(A_BOLD);
-  mvwprintw(stdscr, max_y - 1, 0, "Press h for help");
+  mvwprintw(stdscr, max_y - 1, 1, "Press h for help");
   attroff(A_BOLD);
 
   refresh();

@@ -18,7 +18,7 @@ int main(void) {
   init_window();
 
   /* load the todo list */
-  const char *file_name = "./todo";
+  const char *file_name = "/Users/alicedyd/.todo";
   struct todo_list *list = init_todo_list();
   int screen_offset = 0;
   Result result = load_todo_list(list, file_name);
@@ -96,6 +96,52 @@ int main(void) {
       } else {
         if (list->current_selected < screen_offset) {
           screen_offset--;
+        }
+      }
+    } else if (ch == 'J') {
+      int source_index, target_index;
+      source_index = list->current_selected;
+      target_index = list->current_selected + 1;
+      if (target_index >= list->count) {
+        msg_popup(30, "Notice", "Can't move down");
+      } else {
+        main_result = change_todo_item(list, source_index, target_index);
+        if (main_result.status == RESULT_OK) {
+          list->current_selected++;
+          if (list->current_selected >= list->count) {
+            list->current_selected = 0;
+            screen_offset = 0;
+          } else {
+            int max_y, max_x;
+            getmaxyx(stdscr, max_y, max_x);
+
+            if (list->current_selected >= screen_offset + max_y - 2) {
+              screen_offset++;
+            }
+          }
+        }
+      }
+    } else if (ch == 'K') {
+      int source_index, target_index;
+      source_index = list->current_selected;
+      target_index = list->current_selected - 1;
+      if (target_index < 0) {
+        msg_popup(30, "Notice", "Can't move up");
+      } else {
+        main_result = change_todo_item(list, source_index, target_index);
+        if (main_result.status == RESULT_OK) {
+          list->current_selected--;
+          if (list->current_selected < 0) {
+            list->current_selected = list->count - 1;
+            int max_y, max_x;
+            getmaxyx(stdscr, max_y, max_x);
+            screen_offset =
+                (list->count > max_y - 2) ? list->count - (max_y - 2) : 0;
+          } else {
+            if (list->current_selected < screen_offset) {
+              screen_offset--;
+            }
+          }
         }
       }
     } else if (ch == 'h') {

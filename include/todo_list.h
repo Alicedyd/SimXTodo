@@ -45,6 +45,9 @@ Result save_todo_list(struct todo_list *list, const char *file_name);
 Result add_todo_item(struct todo_list *list, struct todo_item item);
 Result delete_todo_item(struct todo_list *list, int item_index);
 
+Result change_todo_item(struct todo_list *list, int source_index,
+                        int target_index);
+
 Result change_item_status(struct todo_list *list, int item_index);
 Result change_item_contents(struct todo_list *list, int item_index,
                             char *new_contents);
