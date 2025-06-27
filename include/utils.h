@@ -15,4 +15,8 @@ typedef struct result {
 
 char *format_time(time_t);
 
+int utf8_char_bytes(unsigned char first_byte);
+int find_last_char_start(const char *str, int pos);
+int display_width(const char *str, int byte_len);
+
 #endif

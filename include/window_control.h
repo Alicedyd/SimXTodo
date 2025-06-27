@@ -5,6 +5,7 @@
 #include <ncurses.h>
 #include <regex.h>
 #include <string.h>
+#include <wchar.h>
 
 #include "todo_list.h"
 #include "utils.h"

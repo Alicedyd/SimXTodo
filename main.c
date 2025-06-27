@@ -69,9 +69,13 @@ int main(void) {
         msg_popup(strlen(main_result.msg) + 10, "ERROR", main_result.msg);
       }
     } else if (ch == 'm') {
-      input_popup(MAX_TODO_CONTENTS_LEN + 4, "Enter the new TODO",
-                  list->items[list->current_selected].contents,
+      char *buffer = (char *)malloc(sizeof(char) * MAX_TODO_CONTENTS_LEN);
+      input_popup(MAX_TODO_CONTENTS_LEN + 4, "Enter the new TODO", buffer,
                   MAX_TODO_CONTENTS_LEN);
+      if (strlen(buffer) > 0) {
+        strcpy(list->items[list->current_selected].contents, buffer);
+      }
+      free(buffer);
     } else if (ch == 'j') {
       list->current_selected++;
       if (list->current_selected >= list->count) {

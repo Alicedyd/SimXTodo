@@ -98,10 +98,107 @@ void input_popup(int width, const char *prompt, char *buffer, int buffer_size) {
 
   wrefresh(popup);
 
-  /* get the input */
-  echo();
-  mvwgetnstr(popup, 4, 4, buffer, buffer_size - 1);
-  noecho();
+  /* 显示光标 */
+  curs_set(1);
+
+  /* 设置光标位置 */
+  int cursor_x = 4;
+  wmove(popup, 4, cursor_x);
+
+  /* 输入处理 */
+  int pos = 0; /* buffer中的字节位置 */
+  int ch;
+
+  /* 清空buffer */
+  memset(buffer, 0, buffer_size);
+
+  while ((ch = wgetch(popup)) != '\n' && ch != '\r') {
+    if (ch == KEY_BACKSPACE || ch == 127 || ch == 8) {
+      /* 处理退格键 */
+      if (pos > 0) {
+        /* 找到上一个字符的起始位置 */
+        int last_char_start = find_last_char_start(buffer, pos);
+        int char_bytes = pos - last_char_start;
+
+        /* 计算要删除的字符的显示宽度 */
+        char temp_char[5] = {0};
+        memcpy(temp_char, buffer + last_char_start, char_bytes);
+        int char_width = display_width(temp_char, char_bytes);
+
+        /* 清除屏幕上的字符 */
+        for (int i = 0; i < char_width; i++) {
+          mvwprintw(popup, 4, cursor_x - char_width + i, " ");
+        }
+
+        /* 更新buffer和光标位置 */
+        memset(buffer + last_char_start, 0, char_bytes);
+        pos = last_char_start;
+        cursor_x -= char_width;
+
+        /* 移动光标 */
+        wmove(popup, 4, cursor_x);
+      }
+    } else if (ch == 27) {
+      /* ESC键 - 清空输入 */
+      /* 清除所有已输入的内容 */
+      int input_width = display_width(buffer, pos);
+      for (int i = 0; i < input_width; i++) {
+        mvwprintw(popup, 4, 4 + i, " ");
+      }
+
+      memset(buffer, 0, buffer_size);
+      pos = 0;
+      cursor_x = 4;
+      wmove(popup, 4, cursor_x);
+
+      break;
+    } else if (ch >= 32 && ch <= 126) {
+      /* ASCII字符 */
+      if (pos < buffer_size - 1) {
+        buffer[pos++] = ch;
+        mvwprintw(popup, 4, cursor_x, "%c", ch);
+        cursor_x++;
+        wmove(popup, 4, cursor_x);
+      }
+    } else if (ch > 127) {
+      /* 多字节字符处理 */
+      unsigned char first_byte = (unsigned char)ch;
+      int bytes_needed = utf8_char_bytes(first_byte);
+
+      /* 检查缓冲区空间 */
+      if (pos + bytes_needed < buffer_size) {
+        char mb_char[5] = {0};
+        mb_char[0] = ch;
+
+        /* 读取剩余字节 */
+        for (int i = 1; i < bytes_needed; i++) {
+          int next_byte = wgetch(popup);
+          if (next_byte == ERR)
+            break;
+          mb_char[i] = next_byte;
+        }
+
+        /* 添加到buffer */
+        memcpy(buffer + pos, mb_char, bytes_needed);
+        pos += bytes_needed;
+
+        /* 显示字符 */
+        mvwprintw(popup, 4, cursor_x, "%s", mb_char);
+
+        /* 更新光标位置（中文字符占2个位置） */
+        cursor_x += (bytes_needed > 1) ? 2 : 1;
+        wmove(popup, 4, cursor_x);
+      }
+    }
+
+    wrefresh(popup);
+  }
+
+  /* 确保字符串正确结束 */
+  buffer[pos] = '\0';
+
+  /* 隐藏光标 */
+  curs_set(0);
 
   delwin(popup);
   clear();
