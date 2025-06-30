@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(my_todo_list)
+project(SimXTodo)
 
 set(CMAKE_C_STANDARD 99)
 
