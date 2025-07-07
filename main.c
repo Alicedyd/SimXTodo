@@ -1,4 +1,5 @@
 #include "include/utils.h"
+#include <stddef.h>
 #define _GNU_SOURCE
 #include <ncurses.h>
 #include <stdio.h>
@@ -18,7 +19,31 @@ int main(void) {
   init_window();
 
   /* load the todo list */
-  const char *file_name = "/Users/alicedyd/.todo";
+  // const char *file_name = "/Users/alicedyd/.todo";
+  char *file_name = get_save_file_path();
+  if (!file_name) {
+    msg_popup(40, "Error", "Failed to determine config file path");
+    endwin();
+    return 1;
+  }
+
+  /* ensure the save file exists */
+  Result file_chcek_result = ensure_save_file_exists(file_name);
+  if (file_chcek_result.status == RESULT_ERROR) {
+    msg_popup(strlen(file_chcek_result.msg) + 10, "Error",
+              file_chcek_result.msg);
+    free(file_name);
+    endwin();
+    return 1;
+  }
+
+  /* show the save file path */
+  /**
+   * char info_msg[512];
+   * snprintf(info_msg, sizeof(info_msg), "Config file: %s", file_name);
+   * msg_popup(strlen(info_msg) + 4, "Info", info_msg);
+   **/
+
   struct todo_list *list = init_todo_list();
   int screen_offset = 0;
   Result result = load_todo_list(list, file_name);
@@ -27,7 +52,22 @@ int main(void) {
     /* print the error msg and clean the todo file (delte and touch) */
     msg_popup(strlen(result.msg) + 10, "Notice", result.msg);
 
-    /* TODO: add the function to delete and create todo file */
+    FILE *fp = fopen(file_name, "wb");
+    if (fp) {
+      int initial_count = 0;
+      fwrite(&initial_count, sizeof(int), 1, fp);
+      fclose(fp);
+    }
+
+    /* reload */
+    result = load_todo_list(list, file_name);
+    if (result.status == RESULT_ERROR) {
+      msg_popup(30, "Error", "Failed to initialize todo list");
+      free_todo_list(list);
+      free(file_name);
+      endwin();
+      return 1;
+    }
   }
 
   /* clean the main window */

@@ -1,4 +1,8 @@
 #include "../include/utils.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/errno.h>
 char *format_time(time_t time) {
   struct tm *time_info;
   char *data_string = (char *)malloc(sizeof(char) * 20);
@@ -58,4 +62,195 @@ int display_width(const char *str, int byte_len) {
   }
 
   return width;
+}
+
+/* get the HOME directory according to the system */
+char *get_home_dirctory(void) {
+  char *home_dir = NULL;
+
+#ifdef _WIN32
+  char *home_drive = getenv("HOMEDRIVE");
+  char *home_path = getenv("HOMEPATH");
+
+  if (home_drive && home_path) {
+    home_dir = malloc(strlen(home_drive) + strlen(home_path) + 1);
+    strcpy(home_dir, home_drive);
+    strcpy(home_dir, home_path);
+  } else {
+    home_dir == getenv("USERPROFILE");
+    if (home_dir) {
+      char *temp = malloc(strlen(home_dir) + 1);
+      strcpy(temp, home_dir);
+      home_dir = temp;
+    }
+  }
+#else
+  home_dir = getenv("HOME");
+  if (!home_dir) {
+    /* if HOME does not exist, get from passwd */
+    struct passwd *pw = getpwuid(getuid());
+    if (pw) {
+      home_dir = pw->pw_dir;
+    }
+  }
+
+  if (home_dir) {
+    char *temp = malloc(strlen(home_dir) + 1);
+    strcpy(temp, home_dir);
+    home_dir = temp;
+  }
+#endif
+
+  return home_dir;
+}
+
+/* get the save file for todo list */
+char *get_save_file_path(void) {
+  char *home_dir = get_home_dirctory();
+  if (!home_dir) {
+    return NULL;
+  }
+
+  char *save_path = malloc(512);
+
+#ifdef _WIN32
+  /* Windows: %APPDATA%/SimxTodo/todo */
+  char *appdata = getenv("APPDATA");
+  if (appdata) {
+    snprintf(save_path, 512, "%s%sSimxTodo%stodo", appdata, PATH_SEPARATOR,
+             PATH_SEPARATOR);
+  } else {
+    snpring(save_path, 512, "%s%sSimxTodo%stodo", home_dir, PATH_SEPARATOR,
+            PATH_SEPARATOR);
+  }
+#elif defined(__APPLE__)
+  /* macos: ~/Library/Application Support/SimXTodo/todo */
+  snprintf(save_path, 512, "%s%sLibrary%sApplication Support%sSimXTodo%stodo",
+           home_dir, PATH_SEPERATOR, PATH_SEPERATOR, PATH_SEPERATOR,
+           PATH_SEPERATOR);
+#else
+  /* Linux: ~/.config/simxtodo/todo */
+  char *xdg_config = getenv("XDG_CONFIG_HOME");
+  if (xdg_config) {
+    snprintf(save_path, 512, "%s%ssimxtodo%stodo", xdg_config, PATH_SEPARATOR,
+             PATH_SEPARATOR);
+  } else {
+    snprintf(save_path, 512, "%s%s.config%ssimxtodo%stodo", home_dir,
+             PATH_SEPARATOR, PATH_SEPARATOR, PATH_SEPARATOR);
+  }
+#endif
+
+  free(home_dir);
+  return save_path;
+}
+
+int file_exists(const char *path) {
+  struct stat buffer;
+  return (stat(path, &buffer) == 0);
+}
+
+int create_dirctory_recursive(const char *path) {
+  char *path_copy = malloc(strlen(path) + 1);
+  strcpy(path_copy, path);
+
+  char *p = path_copy;
+
+  /* skip the root dir */
+#ifdef _WIN32
+  if (strlne(p) > 3 && p[1] == ":") {
+    p += 3; /* jump C:\ */
+  }
+#else
+  if (p[0] == '/') {
+    p++; /* jump "/" */
+  }
+#endif
+
+  /* create the dirctories recursively */
+  while (*p) {
+    while (*p && *p != '/' && *p != '\\') {
+      p++;
+    }
+
+    if (*p) {
+      *p = '\0';
+
+      if (!file_exists(path_copy)) {
+        if (mkdir(path_copy, 0755) != 0 && errno != EEXIST) {
+          free(path_copy);
+          return -1;
+        }
+      }
+
+#ifdef _WIN32
+      *p = '\\';
+#else
+      *p = '/';
+#endif
+      p++;
+    }
+  }
+
+  /* create the final directory */
+  if (!file_exists(path_copy)) {
+    if (mkdir(path_copy, 0755) != 0 && errno != EEXIST) {
+      free(path_copy);
+      return -1;
+    }
+  }
+
+  free(path_copy);
+  return 0;
+}
+
+/* ensure the save path exist */
+Result ensure_save_file_exists(const char *file_path) {
+  Result result;
+
+  /* check is the file exist*/
+  if (file_exists(file_path)) {
+    result.status = RESULT_OK;
+    result.msg = "OK";
+    return result;
+  }
+
+  /* get the directory path */
+  char *dir_path = malloc(strlen(file_path) + 1);
+  strcpy(dir_path, file_path);
+
+  char *last_sep = strrchr(dir_path, '/');
+  if (!last_sep) {
+    last_sep = strrchr(dir_path, '\\');
+  }
+
+  if (last_sep) {
+    *last_sep = '\0';
+
+    /* create the dirctory */
+    if (create_dirctory_recursive(dir_path) != 0) {
+      free(dir_path);
+      result.status = RESULT_ERROR;
+      result.msg = "Failed to create config dirctory";
+      return result;
+    }
+  }
+
+  free(dir_path);
+
+  /* create an empty save file */
+  FILE *fp = fopen(file_path, "wb");
+  if (!fp) {
+    result.status = RESULT_ERROR;
+    result.msg = "Failed to create config file";
+    return result;
+  }
+
+  /* write the initial data */
+  int initial_count = 0;
+  fwrite(&initial_count, sizeof(int), 1, fp);
+  fclose(fp);
+
+  result.status = RESULT_OK;
+  result.msg = "OK";
+  return result;
 }
