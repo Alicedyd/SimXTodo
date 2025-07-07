@@ -2,30 +2,53 @@
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
-[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS-lightgrey)]()
+[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)]()
 
-> A lightweight, terminal-based todo list manager for developers who prefer simplicity and efficiency.
+> A lightweight, cross-platform, terminal-based todo list manager for developers who prefer simplicity and efficiency.
 
 ## ✨ Features
 
 - **🎯 Simple & Focused**: Clean interface without unnecessary bloat
 - **⌨️ Keyboard-Driven**: Vim-like navigation for maximum productivity
 - **🌈 Color-Coded Status**: Visual status indicators with three distinct states
-- **💾 Persistent Storage**: Automatic save/load functionality
+- **💾 Persistent Storage**: Automatic save/load functionality with platform-specific paths
 - **🌍 Unicode Support**: Full UTF-8 support including Chinese characters
 - **📱 Responsive Layout**: Adapts to different terminal sizes
 - **⚡ Fast Performance**: Written in C for optimal speed
+- **🖥️ Cross-Platform**: Native support for Windows, macOS, and Linux
+- **📁 Smart File Management**: Automatic config directory and file creation
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
+- **Windows**: Windows 7 or later
 - **Linux/macOS**: Unix-like operating system
 - **CMake**: Version 3.10 or higher
-- **ncurses**: Development libraries
-- **GCC/Clang**: C compiler with C99 support
+- **ncurses**: Development libraries (PDCurses for Windows)
+- **GCC/Clang/MSVC**: C compiler with C99 support
 
 ### Installation
+
+#### Windows
+
+```bash
+# Using MinGW-w64 (recommended)
+# Install dependencies first:
+# - CMake: https://cmake.org/download/
+# - MinGW-w64: https://www.mingw-w64.org/
+# - PDCurses: https://pdcurses.org/
+
+# Clone and build
+git clone https://github.com/Alicedyd/SimXTodo.git
+cd SimXTodo
+mkdir build && cd build
+cmake -G "MinGW Makefiles" .. && make
+
+# Or using Visual Studio
+cmake -G "Visual Studio 16 2019" .. 
+cmake --build . --config Release
+```
 
 #### Ubuntu/Debian
 
@@ -71,7 +94,8 @@ cmake .. && make
 
 ```bash
 # From the build directory
-./SimXTodo
+./SimXTodo          # Linux/macOS
+SimXTodo.exe        # Windows
 ```
 
 ## 📖 Usage
@@ -112,29 +136,39 @@ SimXTodo uses a simple three-state system with color coding:
 
 ### Data Storage
 
-Your todos are automatically saved to the following path according to your system in a binary format. The file is:
+Your todos are automatically saved in a platform-appropriate location using a binary format. The configuration file is:
 
-Windows
+#### Windows
 
 ```
-%APPDATA%/SimXTodo/todo
+%APPDATA%\SimXTodo\todo
 ```
 
-MacOS
+*Example: `C:\Users\YourName\AppData\Roaming\SimXTodo\todo`*
+
+#### macOS
 
 ```
 ~/Library/Application Support/SimXTodo/todo
 ```
 
-Linux
+*Example: `/Users/YourName/Library/Application Support/SimXTodo/todo`*
+
+#### Linux
 
 ```
 ~/.config/simxtodo/todo
 ```
 
-- Created automatically on first use
+*Example: `/home/YourName/.config/simxtodo/todo`*
+
+**File Management Features:**
+
+- Created automatically on first use with proper directory structure
 - Saved automatically when you quit the application
 - Loaded automatically when you start the application
+- Cross-platform path detection ensures consistent experience
+- Follows OS-specific configuration directory conventions
 
 ## 🏗️ Project Structure
 
@@ -142,30 +176,74 @@ Linux
 SimXTodo/
 ├── src/
 │   ├── todo_list.c      # Core todo list operations
-│   ├── utils.c          # Utility functions (time, UTF-8)
+│   ├── utils.c          # Utility functions (time, UTF-8, cross-platform paths)
 │   └── window_control.c # ncurses UI management
 ├── include/
 │   ├── todo_list.h      # Todo list data structures
 │   ├── utils.h          # Utility function declarations
 │   └── window_control.h # UI function declarations
 ├── main.c               # Main application loop
-├── CMakeLists.txt       # Build configuration
+├── CMakeLists.txt       # Cross-platform build configuration
 └── README.md           # This file
+```
+
+## 🛠️ Build System
+
+The project uses CMake for cross-platform building with the following features:
+
+- **Automatic library detection**: Finds ncurses/PDCurses based on platform
+- **Compiler optimization**: Platform-specific compile flags
+- **Windows integration**: Automatic shell32 linking for Windows APIs
+- **macOS framework support**: CoreFoundation framework linking
+
+### Build Options
+
+```bash
+# Debug build
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+
+# Release build (optimized)
+cmake -DCMAKE_BUILD_TYPE=Release ..
+
+# Specify custom ncurses path (if needed)
+cmake -DCURSES_INCLUDE_DIR=/custom/path/include ..
 ```
 
 ## 📋 Roadmap
 
+- [x] **Cross-platform support** - Windows, macOS, and Linux compatibility
+- [x] **Smart file management** - Automatic config directory creation
 - [ ] **Search functionality** - Find todos by content
 - [ ] **Categories/Tags** - Organize todos with labels
 - [ ] **Due dates** - Add deadline tracking
 - [ ] **Export options** - Export to text/JSON formats
 - [ ] **Theme customization** - Custom color schemes
 - [ ] **Multiple lists** - Support for separate todo lists
+- [ ] **Sync support** - Cloud synchronization options
 
 ## 🐛 Known Issues
 
 - Long todo items may wrap oddly in narrow terminals
 - Some terminal emulators may have issues with UTF-8 input
+- Windows CMD may require UTF-8 codepage setting (`chcp 65001`)
+
+## 🔧 Troubleshooting
+
+### Windows Issues
+
+- **"ncurses not found"**: Install PDCurses library
+- **Character encoding issues**: Run `chcp 65001` in CMD before starting
+- **Missing DLLs**: Ensure MinGW/MSVC runtime libraries are available
+
+### Linux/macOS Issues
+
+- **Permission denied**: Check if the config directory is writable
+- **Segmentation fault**: Usually indicates corrupted config file - delete and restart
+
+### General
+
+- **Config file corruption**: Delete the config file to reset all data
+- **Build failures**: Ensure all dependencies are properly installed
 
 ## 📄 License
 
@@ -177,10 +255,24 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- Built with [ncurses](https://invisible-island.net/ncurses/) library
+- Built with [ncurses](https://invisible-island.net/ncurses/) library (Linux/macOS)
+- Windows support via [PDCurses](https://pdcurses.org/)
 - Inspired by vim's keyboard-driven philosophy
 - Thanks to the open source community for continuous feedback
+- Cross-platform file system conventions for seamless user experience
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+### Development Setup
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
-**Happy Todo Managing! 📝**
+**Happy Todo Managing Across All Platforms! 📝🖥️**
