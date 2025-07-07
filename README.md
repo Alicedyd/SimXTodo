@@ -44,10 +44,6 @@ git clone https://github.com/Alicedyd/SimXTodo.git
 cd SimXTodo
 mkdir build && cd build
 cmake -G "MinGW Makefiles" .. && make
-
-# Or using Visual Studio
-cmake -G "Visual Studio 16 2019" .. 
-cmake --build . --config Release
 ```
 
 #### Ubuntu/Debian
@@ -260,18 +256,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Inspired by vim's keyboard-driven philosophy
 - Thanks to the open source community for continuous feedback
 - Cross-platform file system conventions for seamless user experience
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-### Development Setup
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 ---
 
