@@ -112,7 +112,25 @@ SimXTodo uses a simple three-state system with color coding:
 
 ### Data Storage
 
-Your todos are automatically saved to `~/.todo` in a binary format. The file is:
+Your todos are automatically saved to the following path according to your system in a binary format. The file is:
+
+Windows
+
+```
+%APPDATA%/SimXTodo/todo
+```
+
+MacOS
+
+```
+~/Library/Application Support/SimXTodo/todo
+```
+
+Linux
+
+```
+~/.config/simxtodo/todo
+```
 
 - Created automatically on first use
 - Saved automatically when you quit the application

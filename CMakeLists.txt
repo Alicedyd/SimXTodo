@@ -36,3 +36,9 @@ target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
 if(APPLE)
     target_link_libraries(${PROJECT_NAME} "-framework CoreFoundation")
 endif()
+
+# windows
+if(WIN32)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE _WIN32)
+    target_link_libraries(${PROJECT_NAME} shell32)
+endif*()
