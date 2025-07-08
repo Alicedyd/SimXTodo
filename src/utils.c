@@ -117,11 +117,11 @@ char *get_save_file_path(void) {
   /* Windows: %APPDATA%/SimxTodo/todo */
   char *appdata = getenv("APPDATA");
   if (appdata) {
-    snprintf(save_path, 512, "%s%sSimxTodo%stodo", appdata, PATH_SEPARATOR,
-             PATH_SEPARATOR);
+    snprintf(save_path, 512, "%s%sSimxTodo%stodo", appdata, PATH_SEPERATOR,
+             PATH_SEPERATOR);
   } else {
-    snpring(save_path, 512, "%s%sSimxTodo%stodo", home_dir, PATH_SEPARATOR,
-            PATH_SEPARATOR);
+    snpring(save_path, 512, "%s%sSimxTodo%stodo", home_dir, PATH_SEPERATOR,
+            PATH_SEPERATOR);
   }
 #elif defined(__APPLE__)
   /* macos: ~/Library/Application Support/SimXTodo/todo */
@@ -132,11 +132,11 @@ char *get_save_file_path(void) {
   /* Linux: ~/.config/simxtodo/todo */
   char *xdg_config = getenv("XDG_CONFIG_HOME");
   if (xdg_config) {
-    snprintf(save_path, 512, "%s%ssimxtodo%stodo", xdg_config, PATH_SEPARATOR,
-             PATH_SEPARATOR);
+    snprintf(save_path, 512, "%s%ssimxtodo%stodo", xdg_config, PATH_SEPERATOR,
+             PATH_SEPeRATOR);
   } else {
     snprintf(save_path, 512, "%s%s.config%ssimxtodo%stodo", home_dir,
-             PATH_SEPARATOR, PATH_SEPARATOR, PATH_SEPARATOR);
+             PATH_SEPERATOR, PATH_SEPERATOR, PATH_SEPERATOR);
   }
 #endif
 
