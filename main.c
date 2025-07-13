@@ -110,6 +110,7 @@ int main(void) {
       }
     } else if (ch == 'm') {
       char *buffer = (char *)malloc(sizeof(char) * MAX_TODO_CONTENTS_LEN);
+      strcpy(buffer, list->items[list->current_selected].contents);
       input_popup(MAX_TODO_CONTENTS_LEN + 4, "Enter the new TODO", buffer,
                   MAX_TODO_CONTENTS_LEN);
       if (strlen(buffer) > 0) {

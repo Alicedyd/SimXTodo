@@ -110,7 +110,21 @@ void input_popup(int width, const char *prompt, char *buffer, int buffer_size) {
   int ch;
 
   /* 清空buffer */
-  memset(buffer, 0, buffer_size);
+  /* memset(buffer, 0, buffer_size); */
+
+  if (strlen(buffer) > 0) {
+    /* store the original information */
+
+    mvwprintw(popup, 4, cursor_x, buffer);
+
+    int initial_char_bytes = strlen(buffer);
+    int initial_display_width = display_width(buffer, initial_char_bytes);
+
+    pos = initial_char_bytes;
+    cursor_x = initial_display_width + 4;
+
+    wmove(popup, 4, cursor_x);
+  }
 
   while ((ch = wgetch(popup)) != '\n' && ch != '\r') {
     if (ch == KEY_BACKSPACE || ch == 127 || ch == 8) {
